@@ -91,4 +91,50 @@ class UserController extends Controller
     {
         return $this->userService->getUsers();
     }
+
+    /**
+     * Authenticates a user with the provided credentials.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function login(Request $request): JsonResponse
+    {
+        try {
+            $request->validate(ValidationHelper::getLoginData());
+            return $this->userService->login($request->all());
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), ResponseStatus::HTTP_UNPROCESSABLE_ENTITY);
+        }
+    }
+
+    /**
+     * Logs out the authenticated user.
+     *
+     * @return JsonResponse
+     */
+    public function logout(): JsonResponse
+    {
+        try {
+            return $this->userService->logout();
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), ResponseStatus::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Check if the email can be used
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function checkEmail(Request $request): JsonResponse
+    {
+        try {
+            $request->validate(ValidationHelper::getCheckEmailData());
+            return $this->userService->checkEmail($request->all());
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), ResponseStatus::HTTP_UNPROCESSABLE_ENTITY);
+        }
+    }
 }

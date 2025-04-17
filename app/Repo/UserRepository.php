@@ -5,6 +5,7 @@ namespace App\Repo;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Collection;
 use App\Models\User;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UserRepository
 {
@@ -90,5 +91,33 @@ class UserRepository
     public function getUsers(): Collection
     {
         return $this->model->get();
+    }
+
+    /**
+     * Authenticates a user with the provided credentials.
+     *
+     * @param array $data
+     * @return string
+     */
+    public function login(array $data): string
+    {
+        $token = JWTAuth::attempt($data);
+        return $token;
+    }
+
+    public function getByColumn($column, $value)
+    {
+        return $this->model->where($column, $value)->get();
+    }
+
+    /**
+     * Gets the user associated with the provided token.
+     *
+     * @return User|bool
+     */
+    public function getAuthenticatedUser(): User|bool
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        return $user;
     }
 }

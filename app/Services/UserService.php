@@ -4,8 +4,10 @@ namespace App\Services;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\Response as ResponseStatus;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Repo\UserRepository;
 use App\Traits\ApiResponse;
 
@@ -41,18 +43,12 @@ class UserService
      * get user by id
      *
      * @param int $id
-     * @param Request $request
      * @return JsonResponse
      */
-    public function getUser(int $id, Request $request): JsonResponse
+    public function getUser(int $id): JsonResponse
     {
         try {
-            // $authenticatedUser = $request->user(); // TODO: get authenticated user after login is finished
             $user = $this->userRepository->getUser($id);
-            
-            // if ($authenticatedUser->role !== 'admin' && $authenticatedUser->email !== $user['email']) {
-            //     throw new Exception('Unauthorized access');
-            // }
 
             return $this->successResponse($user, 'User retrieved successfully');
         } catch (Exception $e) {
@@ -109,6 +105,68 @@ class UserService
         } catch (Exception $e) {
             Log::error('Error retrieving users: ' . $e->getMessage());
             return $this->errorResponse('Failed to retrieve users', 404);
+        }
+    }
+
+    /**
+     * Authenticates a user with the provided credentials.
+     *
+     * @param array $data
+     * @return JsonResponse
+     */
+    public function login(array $data): JsonResponse
+    {
+        try {
+            $token = $this->userRepository->login($data);
+
+            if (!$token) {
+                return $this->errorResponse('Email ou senha inválidos', ResponseStatus::HTTP_UNAUTHORIZED);
+            }
+
+            return $this->successResponse([
+                'token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => JWTAuth::factory()->getTTL() * 60,
+                'user' => JWTAuth::user()
+            ], 'Login feito com sucesso!');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), ResponseStatus::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Logs out the authenticated user.
+     *
+     * @return JsonResponse
+     */
+    public function logout(): JsonResponse
+    {
+        try {
+            JWTAuth::invalidate(JWTAuth::getToken());
+            return $this->successResponse([], 'Logout feito com sucesso!');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), ResponseStatus::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Check if the email can be used
+     *
+     * @param array $data
+     * @return JsonResponse
+     */
+    public function checkEmail(array $data): JsonResponse
+    {
+        try {
+            $user = $this->userRepository->getByColumn('email', $data['email']);
+
+            if (!$user->isEmpty()) {
+                return $this->errorResponse('O email já está em uso', ResponseStatus::HTTP_BAD_REQUEST);
+            }
+
+            return $this->successResponse([], 'Email disponível');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), ResponseStatus::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

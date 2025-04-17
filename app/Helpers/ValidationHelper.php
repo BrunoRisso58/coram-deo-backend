@@ -33,4 +33,29 @@ class ValidationHelper
             'password' => 'string|min:8',
         ];
     }
+
+    /**
+     * Validate the login data.
+     *
+     * @return array
+     */
+    public static function getLoginData(): array
+    {
+        return [
+            'email' => 'required|email',
+            'password' => 'required|min:8'
+        ];
+    }
+
+    /**
+     * Validate the checkEmail data.
+     *
+     * @return array
+     */
+    public static function getCheckEmailData(): array
+    {
+        return [
+            'email' => 'required|email',
+        ];
+    }
 }
