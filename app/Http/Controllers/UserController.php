@@ -44,9 +44,9 @@ class UserController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function getUser(int $id, Request $request): JsonResponse
+    public function getUser(int $id): JsonResponse
     {
-        return $this->userService->getUser($id, $request);
+        return $this->userService->getUser($id);
     }
 
     /**

@@ -30,6 +30,8 @@ class CheckAuthenticatedUser
     public function handle(Request $request, Closure $next)
     {
         try {
+            info('Request: ');
+            info($request['user']->id);
             $authenticatedUser = $request['user'];
             $user = $this->userRepository->getUser($request->id);
         } catch (\Exception $e) {
