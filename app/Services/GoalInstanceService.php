@@ -93,4 +93,38 @@ class GoalInstanceService
             return $this->errorResponse('Delete goal instance failed', 500);
         }
     }
+
+    /**
+     * Mark goal instance as complete
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function markGoalInstanceAsComplete(int $id)
+    {
+        try {
+            $goalInstance = $this->goalInstanceRepository->markGoalInstanceAsComplete($id);
+            return $this->successResponse($goalInstance, 'Goal marked as completed successfully');
+        } catch (Exception $e) {
+            Log::error('Error marking goal as completed instance: ' . $e->getMessage());
+            return $this->errorResponse('Mark goal as completed goal instance failed', 500);
+        }
+    }
+
+    /**
+     * Get dashboard for the last 7 days completion
+     *
+     * @param array $data
+     * @return JsonResponse
+     */
+    public function get7DaysCompletionDashboard(array $data): JsonResponse
+    {
+        try {
+            $dashboard = $this->goalInstanceRepository->get7DaysCompletionDashboard($data['user']->id);
+            return $this->successResponse($dashboard, 'Dashboard retrieved successfully');
+        } catch (Exception $e) {
+            Log::error('Error retrieving dashboard: ' . $e->getMessage());
+            return $this->errorResponse('Dashboard retrieval failed', 500);
+        }
+    }
 }

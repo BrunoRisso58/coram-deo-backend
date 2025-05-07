@@ -82,4 +82,34 @@ class GoalInstanceController extends Controller
             return $this->errorResponse($e->getMessage(), ResponseStatus::HTTP_BAD_REQUEST);
         }
     }
+
+    /**
+     * Mark goal instance as complete
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function markGoalInstanceAsComplete(int $id)
+    {
+        try {
+            return $this->goalInstanceService->markGoalInstanceAsComplete($id);
+        } catch (Exception $e) {
+            return $this->errorResponse($e->getMessage(), ResponseStatus::HTTP_BAD_REQUEST);
+        }
+    }
+
+    /**
+     * Get dashboard for the last 7 days completion
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function get7DaysCompletionDashboard(Request $request): JsonResponse
+    {
+        try {
+            return $this->goalInstanceService->get7DaysCompletionDashboard($request->all());
+        } catch (Exception $e) {
+            return $this->errorResponse($e->getMessage(), ResponseStatus::HTTP_BAD_REQUEST);
+        }
+    }
 }

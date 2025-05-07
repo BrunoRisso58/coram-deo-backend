@@ -39,7 +39,10 @@ Route::middleware('check.jwt')->group(function () {
     Route::prefix('/goal-instance')->group(function () {
         Route::post('/create', [GoalInstanceController::class, 'createGoalInstances']);
         Route::get('/', [GoalInstanceController::class, 'getGoalInstances']);
-        Route::get('/{id}', [GoalInstanceController::class, 'getGoalInstance']);
+        Route::get('/{id}/get', [GoalInstanceController::class, 'getGoalInstance']);
         Route::delete('/{id}', [GoalInstanceController::class, 'deleteGoalInstance']);
+        Route::put('/{id}/mark-as-completed', [GoalInstanceController::class, 'markGoalInstanceAsComplete']);
+
+        Route::get('/completion-dashboard', [GoalInstanceController::class, 'get7DaysCompletionDashboard']);
     });
 });

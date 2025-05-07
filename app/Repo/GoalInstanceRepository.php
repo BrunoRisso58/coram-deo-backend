@@ -46,8 +46,9 @@ class GoalInstanceRepository
         });
 
         // Step 3: Create instances for the filtered goals
-        $newInstances = $filteredGoals->map(function ($goal) use ($date) {
+        $newInstances = $filteredGoals->map(function ($goal) use ($date, $user) {
             return [
+                'user_id' => $user->id,
                 'goal_id' => $goal->id,
                 'completion_date' => $date,
                 'completed_at' => null,
@@ -70,12 +71,41 @@ class GoalInstanceRepository
     }
 
     /**
+     * Get dashboard for the last 7 days completion
+     *
+     * @param int $userId
+     * @return array
+     */
+    public function get7DaysCompletionDashboard(int $userId): array
+    {
+        $startDate = now()->setTimezone('America/Sao_Paulo')->subDays(6)->startOfDay();
+        $endDate = now()->setTimezone('America/Sao_Paulo')->endOfDay();
+
+        info($startDate);
+        info($endDate);
+
+        $goalInstances = $this->getGoalInstances(now()->setTimezone('America/Sao_Paulo')->format('Y-m-d'));
+
+        $goals = [];
+        foreach ($goalInstances as $goalInstance) {
+            $goals[] = $this->model->leftJoin('goals', 'goal_instances.goal_id', '=', 'goals.id')
+                                   ->where('goal_instances.user_id', $userId)
+                                   ->where('goal_instances.goal_id', $goalInstance->goal_id)
+                                   ->whereBetween('goal_instances.completion_date', [$startDate, $endDate])
+                                   ->where('goal_instances.completed_at', '!=', null)
+                                   ->first();
+        }
+
+        return $goals;
+    }
+
+    /**
      * Get Goal Instance
      *
      * @param int $id
-     * @return array
+     * @return GoalInstance
      */
-    public function getGoalInstance(int $id): Collection
+    public function getGoalInstance(int $id): GoalInstance
     {
         return $this->model->findOrFail($id);
     }
@@ -124,5 +154,19 @@ class GoalInstanceRepository
         $goalInstance->delete();
         
         return $goalInstance;
+    }
+
+    /**
+     * Mark goal instance as complete
+     *
+     * @param int $id
+     * @return GoalInstance
+     */
+    public function markGoalInstanceAsComplete(int $id): GoalInstance
+    {
+        $goalInstance = $this->getGoalInstance($id);
+        $goalInstance->completed_at ? $goalInstance->update(['completed_at' => null]) : $goalInstance->update(['completed_at' => now()]);
+
+        return $goalInstance->refresh();
     }
 }
